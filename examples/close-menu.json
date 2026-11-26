@@ -1,0 +1,114 @@
+{
+  "format": "walkthrough",
+  "version": 1,
+  "id": "close-menu-demo",
+  "name": "Close a menu",
+  "createdAt": "2026-11-26T00:00:00Z",
+  "source": {
+    "url": "https://example.com/menu",
+    "title": "Menu demo",
+    "viewport": {
+      "width": 800,
+      "height": 600
+    }
+  },
+  "duration": 500,
+  "complete": true,
+  "gaps": [
+    "Synthetic example: one click observation; application logic is not captured."
+  ],
+  "events": [
+    {
+      "type": 4,
+      "timestamp": 1000,
+      "data": {
+        "href": "https://example.com/menu",
+        "width": 800,
+        "height": 600
+      }
+    },
+    {
+      "type": 2,
+      "timestamp": 1001,
+      "data": {
+        "node": {
+          "type": 0,
+          "id": 1,
+          "childNodes": [
+            {
+              "type": 2,
+              "id": 2,
+              "tagName": "html",
+              "attributes": {},
+              "childNodes": [
+                {
+                  "type": 2,
+                  "id": 3,
+                  "tagName": "body",
+                  "attributes": {},
+                  "childNodes": [
+                    {
+                      "type": 2,
+                      "id": 4,
+                      "tagName": "button",
+                      "attributes": {
+                        "aria-labelledby": "close-caption"
+                      },
+                      "childNodes": []
+                    },
+                    {
+                      "type": 2,
+                      "id": 5,
+                      "tagName": "span",
+                      "attributes": {
+                        "id": "close-caption"
+                      },
+                      "childNodes": [
+                        {
+                          "type": 3,
+                          "id": 6,
+                          "textContent": "Close menu"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "initialOffset": {
+          "top": 0,
+          "left": 0
+        }
+      }
+    }
+  ],
+  "observations": [
+    {
+      "at": 250,
+      "eventAt": 248,
+      "trigger": "click",
+      "element": {
+        "nodeId": 4,
+        "tag": "button",
+        "selector": "button[aria-labelledby]",
+        "label": "button",
+        "attributes": {
+          "aria-labelledby": "close-caption"
+        },
+        "styles": {
+          "border-radius": "8px"
+        },
+        "rect": {
+          "x": 8,
+          "y": 8,
+          "width": 32,
+          "height": 32
+        },
+        "states": [],
+        "animations": []
+      }
+    }
+  ]
+}
