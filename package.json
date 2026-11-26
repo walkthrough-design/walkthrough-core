@@ -5,5 +5,6 @@
   "type": "module",
   "exports": "./src/index.ts",
   "scripts": { "context": "bun context.ts", "test": "bun test src" },
-  "dependencies": { "@rrweb/types": "2.2.2" }
+  "dependencies": { "@rrweb/types": "2.2.2" },
+  "devDependencies": { "happy-dom": "21.0.4" }
 }

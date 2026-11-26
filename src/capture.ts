@@ -8,6 +8,40 @@ function attributes(element: Element): Record<string, string> {
   return Object.fromEntries(SEMANTIC_ATTRIBUTES.filter(name => element.hasAttribute(name)).map(name => [name, element.getAttribute(name)!.slice(0, 256)]));
 }
 
+const UNREAD = `${FIELDS},${PRIVATE},script,style,noscript`;
+
+function readText(root: Element, skip = UNREAD): string {
+  const walker = root.ownerDocument.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+  let text = '';
+  let visited = 0;
+  while (text.length < 100 && visited++ < 500) {
+    const node = walker.nextNode();
+    if (!node) break;
+    if (!node.parentElement?.closest(skip)) text += ` ${node.textContent ?? ''}`;
+  }
+  return text;
+}
+
+function rendered(element: Element): boolean {
+  const win = element.ownerDocument.defaultView!;
+  if (element.closest('[hidden]') || ['hidden', 'collapse'].includes(win.getComputedStyle(element).visibility)) return false;
+  for (let node: Element | null = element; node; node = node.parentElement) if (win.getComputedStyle(node).display === 'none') return false;
+  return true;
+}
+
+/** Visible text referenced by aria-labelledby. A missing, hidden or private reference drops the whole name. */
+function referencedLabel(element: Element): string {
+  const ids = element.getAttribute('aria-labelledby')?.trim().split(/\s+/).filter(Boolean) ?? [];
+  if (ids.length > 8) return '';
+  const parts: string[] = [];
+  for (const id of ids) {
+    const target = id.length <= 256 ? element.ownerDocument.getElementById(id) : null;
+    if (!target || target.closest(`${FIELDS},${PRIVATE}`) || target.querySelector(`${FIELDS},${PRIVATE}`) || !rendered(target)) return '';
+    parts.push(readText(target, `${UNREAD},[hidden]`));
+  }
+  return parts.join(' ').trim();
+}
+
 export function getControlKey(value: string): ControlKey | undefined {
   const key = value === ' ' ? 'Space' : value;
   return (CONTROL_KEYS as readonly string[]).includes(key) ? key as ControlKey : undefined;
@@ -39,16 +73,9 @@ export function captureElement(element: Element, nodeId: number): ElementEvidenc
   });
   const tag = element.tagName.toLowerCase();
   // Never copy field values or private/block-marked text into inspection evidence.
-  const privateText = element.closest('input,textarea,select,[contenteditable],.rr-mask,.rr-block,[data-private],[data-walkthrough-block]');
-  const walker = element.ownerDocument.createTreeWalker(element, NodeFilter.SHOW_TEXT);
-  let safeText = '';
-  let visited = 0;
-  while (!privateText && safeText.length < 100 && visited++ < 500) {
-    const node = walker.nextNode();
-    if (!node) break;
-    if (!node.parentElement?.closest('input,textarea,select,[contenteditable],.rr-mask,.rr-block,[data-private],[data-walkthrough-block],script,style,noscript')) safeText += ` ${node.textContent ?? ''}`;
-  }
-  const label = privateText ? `${tag} (masked)` : (element.getAttribute('aria-label') || safeText || tag).trim().replace(/\s+/g, ' ').slice(0, 100);
+  const privateText = element.closest(`${FIELDS},${PRIVATE}`);
+  // aria-labelledby names icon-only controls with visible page text; it takes precedence, as in the accessible name.
+  const label = privateText ? `${tag} (masked)` : (referencedLabel(element) || element.getAttribute('aria-label') || readText(element) || tag).trim().replace(/\s+/g, ' ').slice(0, 100);
   const id = element.id ? `#${CSS.escape(element.id)}` : '';
   const classes = [...element.classList].filter(name => !name.startsWith('rr-')).slice(0, 2).map(name => `.${CSS.escape(name)}`).join('');
   return { nodeId, tag, selector: `${tag}${id || classes}`, label, styles, states, animations, attributes: attributes(element), rect: { x: rect.x, y: rect.y, width: rect.width, height: rect.height } };
